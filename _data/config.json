@@ -1,0 +1,14 @@
+{
+    "domain": "http://Dodecagram.github.io/",
+    "base": "Lines/",
+    "ui": {
+        "Header": "Header",
+        "Notice": "Notice",
+        "FileName": "Name",
+        "LastModified": "Last Modified",
+        "ExtName": "Extname",
+        "SortBy": "Sort by",
+        "Footer": "Footer",
+        "Page404": "<p>404 not found.</p><p><a href=\".\">Back</a></p>"
+    }
+}

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <base target="_blank" href="/{{ site.data.config.base }}">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="assets/css/framework.css">
+  </head>
+  <body>
+    <div id="widget">
+      <div class="mask hidden">
+        <a class="closebutton"></a>
+        <a class="progress">1/2</a>
+        <div class="container">
+          <span class="next"></span>
+          <div class="pic">
+            <img >
+          </div>
+          <span class="next"></span>
+        </div>
+      </div>
+      <div class="audioWindow hidden">
+        <header><a class="closebutton"></a><a class="minimizeButton"></a></header>
+          <div class="container">
+            <ul>
+            </ul>
+          </div>
+        <footer>
+          <a class="next"></a>
+          <audio controls="controls">
+            <source >
+          </audio>
+          <a class="next"></a>
+        </footer>
+      </div>
+    </div>
+    <header>{{ site.data.config.ui.Header }}</header>
+    <main>
+      <nav></nav>
+      <section id="note">
+        <header>{{ site.data.config.ui.Notice }}</header>
+        <pre></pre>
+      </section>
+      <section id="dirs">
+        <header>
+          <span>{{ site.data.config.ui.FileName }}</span>
+          <span>{{ site.data.config.ui.LastModified }}</span>
+          <span class="sortby">
+            <span>
+              {{ site.data.config.ui.SortBy }}
+              <ul>
+                <li><a>{{ site.data.config.ui.FileName }}</a></li>
+                <li><a>{{ site.data.config.ui.LastModified }}</a></li>
+                <li><a>{{ site.data.config.ui.ExtName }}</a></li>
+              </ul>
+            </span>
+          </span>
+        </header>
+        <ul>
+          <li><span><a href="#"></a></span><span></span><span><a href="#"></a></span></li>
+        </ul>
+      </section>
+    </main>
+    <footer>{{ site.data.config.ui.Footer }}</footer>
+    <script src="assets/js/main.js"></script>
+    <script>
+      function sort(type){
+        let node = document.querySelector('#dirs>ul');
+        let arr = [];
+        switch(type){
+              case 0:
+            node.childNodes.forEach((x, idx)=>{
+              if(x.firstChild.innerText == '..'){
+                arr.push(['', idx]);
+                return;
+              }
+              arr.push([x.firstChild.innerText, idx]);
+            });
+            break;
+              case 1:
+            node.childNodes.forEach((x, idx)=>{
+              if(x.firstChild.innerText == '..'){
+                arr.push(['', idx]);
+                return;
+              }
+              arr.push([x.childNodes.length>=2?x.childNodes[1].innerText:'', idx]);
+            });
+            break;
+              case 2:
+            node.childNodes.forEach((x, idx)=>{
+              if(x.firstChild.innerText == '..'){
+                arr.push(['', '', idx]);
+                return;
+              }
+              arr.push([/\.[^\.]*$/.test(x.firstChild.innerText)?x.firstChild.innerText.match(/\.[^\.]*$/)[0]:'', x.firstChild.innerText, idx]);
+            });
+            break;
+        }
+        let sortnodes = arr.sort().map(x=>x.slice(-1)[0]).map(idx=>node.childNodes[idx]);
+        node.innerHTML = '';
+        for(let i in sortnodes){
+          node.appendChild(sortnodes[i]);
+        }
+      }
+      document.querySelector('.sortby li:nth-of-type(1)').onclick = function(){sort(0)};
+      document.querySelector('.sortby li:nth-of-type(2)').onclick = function(){sort(1)};
+      document.querySelector('.sortby li:nth-of-type(3)').onclick = function(){sort(2)};
+    </script>
+    <script>
+      /* view picture */
+      let mask = document.querySelector('#widget .mask');
+      let PicList = [];
+      let PicIdx = 0;
+      let closebutton = document.querySelector('#widget .mask .closebutton');
+      closebutton.onclick = function(){
+        mask.classList.toggle('hidden', true)
+      };
+      let PicProgress = document.querySelector('#widget .mask .progress');
+      PicProgress.innerHTML = (PicIdx+1) + '/' + PicList.length;
+      let pre_button = document.querySelector('#widget .mask span.next:first-child');
+      let next_button = document.querySelector('#widget .mask span.next:last-child');
+      function readPic(direction){
+        PicIdx += direction + PicList.length;
+        PicIdx %= PicList.length;
+        document.querySelector('#widget .mask .pic img').src = PicList[PicIdx];
+        PicProgress.innerHTML = (PicIdx+1) + '/' + PicList.length;
+      }
+      pre_button.onclick = ()=>{readPic(-1)};
+      next_button.onclick = ()=>{readPic(1)};
+    </script>
+	<script>
+		/* audio */
+		let minimizeButton = document.querySelector('#widget .audioWindow>header a:last-child');
+		let audioWindow = document.querySelector('#widget .audioWindow');
+		minimizeButton.onclick = function(e){
+			audioWindow.classList.toggle('minimize');
+		}
+		let audio = document.querySelector('#widget .audioWindow audio');
+		let closeButton = document.querySelector('#widget .audioWindow>header a:first-child');
+		closeButton.onclick = function(e){
+			audio.pause();
+			audioWindow.classList.toggle('hidden', true);
+		}
+		let AudioList = [];
+		let AudIdx = 0;
+		let LiList = [];
+		function formAudioList(list, idx){
+			document.querySelector('#widget .audioWindow .container ul').innerHTML = '';
+			audioWindow.classList.toggle('minimize', false);
+			LiList = [];
+			let pre_arr = list.slice(idx);
+			let post_arr = list.slice(0, idx);
+			AudioList = pre_arr.concat(post_arr);
+			AudIdx = 0;
+			for(let i in AudioList){
+				let li = document.createElement('li');
+				let span_icon = document.createElement('span');
+				let span_text = document.createElement('span');
+				span_text.innerHTML = AudioList[i].match(/[^\/]*$/)[0];
+				li.appendChild(span_icon);
+				li.appendChild(span_text);
+				li.ondblclick = function(){
+					readAud(0, li);
+				}
+				LiList.push(li);
+				document.querySelector('#widget .audioWindow .container ul').appendChild(li);
+			}
+			readAud(0);
+		}
+		let pre_button_aud = document.querySelector('#widget .audioWindow a.next:first-child');
+		let next_button_aud = document.querySelector('#widget .audioWindow a.next:last-child');
+		function readAud(direction, audio_li){
+			LiList[AudIdx].classList.toggle('playing', false);
+			if(audio_li){
+				AudIdx = LiList.indexOf(audio_li);
+			}else{
+				AudIdx += direction + AudioList.length;
+				AudIdx %= AudioList.length;
+			}
+			document.querySelector('#widget .audioWindow audio source').src = AudioList[AudIdx];
+			LiList[AudIdx].classList.toggle('playing', true);
+			document.querySelector('#widget .audioWindow .container').scrollTop = AudIdx * 30;
+			audio.load();
+			audio.play();
+		}
+		audio.onended = ()=>{readAud(1)};
+		pre_button_aud.onclick = ()=>{readAud(-1)};
+		next_button_aud.onclick = ()=>{readAud(1)};
+	</script>
+  </body>
+</html>

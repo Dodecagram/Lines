@@ -1,0 +1,4 @@
+---
+
+---
+[{% for file in site.static_files %}["{{ file.path }}", "{{ file.modified_time }}"]{% if forloop.last == false %},{% endif %}{% endfor %}]
